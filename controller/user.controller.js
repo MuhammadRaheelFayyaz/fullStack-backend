@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const { JWT_KEY } = require("../config");
 require("../models/user.model");
-const User = mongoose.model("Users");
 
 exports.test = (req, res) => {
   res.send({
@@ -12,33 +11,37 @@ exports.test = (req, res) => {
 
 exports.register = async (req, res) => {
   let { name, password } = req.body;
-
-  User.name = name;
-  User.password = password;
   try {
+    const User = mongoose.model("Users");
     let check = await User.findOne({ name });
-    if (check) res.status(500).send({ error: "user alredy exsist" });
+    User.name = name;
+    User.password = password;
+    if (check) throw "User already exist";
     let dbUser = await User.create({ name, password });
-    if (!dbUser) res.status(500).send({ error: "user not created" });
+    if (!dbUser) throw "User not created";
     let token = jwt.sign({ user_id: dbUser.id }, JWT_KEY, { expiresIn: "1d" });
-    res.send({
+    return res.send({
       token
     });
   } catch (error) {
-    res.status(500).send({ error });
+    return res.send({
+      status: "error",
+      message: error
+    });
   }
 };
 exports.signIn = async (req, res) => {
   let { name, password } = req.body;
   try {
+    const User = mongoose.model("Users");
     let dbUser = await User.findOne({ name });
     if (!dbUser || dbUser.password !== password)
-      res.status(500).send({ error: "Wrong Credential" });
+      return res.status(500).send({ error: "Wrong Credential" });
     let token = jwt.sign({ user_id: dbUser.id }, JWT_KEY, { expiresIn: "1d" });
-    res.send({
+    return res.send({
       token
     });
   } catch (error) {
-    res.status(500).send({ error });
+    return res.status(500).send({ error });
   }
 };
