@@ -1,5 +1,8 @@
 const mongoose = require("mongoose");
+const jwt = require("jsonwebtoken");
+const { JWT_KEY } = require("../config");
 require("../models/user.model");
+
 exports.test = (req, res) => {
   res.send({
     success: true
@@ -17,8 +20,13 @@ exports.register = async (req, res) => {
     if (!dbUser) {
       res.status(500).send({ error: "user not created" });
     }
+    let token = jwt.sign(
+      { user_id: dbUser.id, user_name: dbUser.name },
+      JWT_KEY,
+      { expiresIn: "1d" }
+    );
     res.send({
-      name: dbUser.name
+      token
     });
   } catch (error) {
     res.status(500).send({ error });
