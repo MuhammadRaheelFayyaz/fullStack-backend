@@ -21,7 +21,9 @@ exports.register = async (req, res) => {
     if (!dbUser) throw "User not created";
     let token = jwt.sign({ user_id: dbUser.id }, JWT_KEY, { expiresIn: "1d" });
     return res.send({
-      token
+      token,
+      user_id: dbUser._id,
+      name: dbUser.name
     });
   } catch (error) {
     console.log("error :", error);
@@ -32,14 +34,17 @@ exports.register = async (req, res) => {
   }
 };
 exports.signIn = async (req, res) => {
-  let { name, password } = req.body;
+  console.log("req.params :", req.params);
+  let { name, password } = req.params;
   try {
     const User = mongoose.model("Users");
     let dbUser = await User.findOne({ name });
     if (!dbUser || dbUser.password !== password) throw "Wrong Credential";
     let token = jwt.sign({ user_id: dbUser.id }, JWT_KEY, { expiresIn: "1d" });
     return res.send({
-      token
+      token,
+      user_id: dbUser._id,
+      name: dbUser.name
     });
   } catch (error) {
     console.log("error :", error);
