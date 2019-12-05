@@ -24,6 +24,7 @@ exports.register = async (req, res) => {
       token
     });
   } catch (error) {
+    console.log("error :", error);
     return res.send({
       status: "error",
       message: error
@@ -35,28 +36,29 @@ exports.signIn = async (req, res) => {
   try {
     const User = mongoose.model("Users");
     let dbUser = await User.findOne({ name });
-    if (!dbUser || dbUser.password !== password)
-      return res.status(500).send({ error: "Wrong Credential" });
+    if (!dbUser || dbUser.password !== password) throw "Wrong Credential";
     let token = jwt.sign({ user_id: dbUser.id }, JWT_KEY, { expiresIn: "1d" });
     return res.send({
       token
     });
   } catch (error) {
-    return res.status(500).send({ error });
+    console.log("error :", error);
+    return res.send({ status: "error", message: error });
   }
 };
 
 exports.authencateUser = async (req, res) => {
   try {
-    if (!req.isAuth) throw new AuthenticationError("Token expire");
+    if (!req.isAuth) throw "Token expire";
     const User = mongoose.model("Users");
     let dbUser = await User.findById(req.userId);
-    if (!dbUser) throw new Error("User not exist");
+    if (!dbUser) throw "User not exist";
     return res.send({
       user_id: dbUser._id,
       name: dbUser.name
     });
   } catch (error) {
+    console.log("error :", error);
     return res.send({
       status: "error",
       message: error
