@@ -45,3 +45,21 @@ exports.signIn = async (req, res) => {
     return res.status(500).send({ error });
   }
 };
+
+exports.authencateUser = async (req, res) => {
+  try {
+    if (!req.isAuth) throw new AuthenticationError("Token expire");
+    const User = mongoose.model("Users");
+    let dbUser = await User.findById(req.userId);
+    if (!dbUser) throw new Error("User not exist");
+    return res.send({
+      user_id: dbUser._id,
+      name: dbUser.name
+    });
+  } catch (error) {
+    return res.send({
+      status: "error",
+      message: error
+    });
+  }
+};
